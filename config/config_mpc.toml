@@ -1,7 +1,7 @@
 linear_solver   =                "ma97"
 
-controller_sampling_time    =    0.1
-controller_horizon          =    9
+controller_sampling_time    =    0.04
+controller_horizon          =    25
 
 number_of_maximum_contacts    =   2
 number_of_slices              =    1
@@ -11,7 +11,7 @@ com_weight                  =   [10.0, 10.0, 200.0]
 contact_position_weight     =   2e2
 force_rate_of_change_weight =   [10.0, 10.0, 10.0]
 angular_momentum_weight     =   1.0
-ipopt_max_iteration         =   6
+ipopt_max_iteration         =   9
 solver_verbosity            =   0
 
 [CONTACT_0]

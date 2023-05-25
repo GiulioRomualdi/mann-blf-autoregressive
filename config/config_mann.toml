@@ -11,8 +11,10 @@ chest_link_frame_name = "chest"
 left_foot_frame_name = "l_sole"
 right_foot_frame_name = "r_sole"
 sampling_time = 0.02
-time_horizon = 0.2
-slow_down_factor = 5
+#time_horizon = 0.3
+time_horizon = 0.6
+slow_down_factor = 2
+forward_direction = "x"
 
 [LEFT_FOOT]
 number_of_corners = 4
@@ -30,4 +32,5 @@ corner_3  = [-0.08, 0.03, 0.0]
 
 [MANN]
 projected_base_horizon = 12
-onnx_model_path = "/home/gromualdi/robot-code/test-mann-blf/config/model.onnx"
+#onnx_model_path = "/home/gromualdi/robot-code/test-mann-blf/config/onnx_30_mann8.onnx"
+onnx_model_path = "/home/gromualdi/robot-code/test-mann-blf/config/ergocubSN000_26j_49e.onnx"
