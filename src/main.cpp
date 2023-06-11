@@ -18,6 +18,23 @@
 using namespace BipedalLocomotion;
 using namespace std::chrono_literals;
 
+void updateContactPhaseList(
+    const std::map<std::string, BipedalLocomotion::Contacts::PlannedContact>& nextPlannedContacts,
+    BipedalLocomotion::Contacts::ContactPhaseList& phaseList)
+{
+    auto newList = phaseList.lists();
+    for (const auto& [key, contact] : nextPlannedContacts)
+    {
+        auto it = newList.at(key).getPresentContact(contact.activationTime);
+        if (it != newList.at(key).cend())
+        {
+            newList.at(key).editContact(it, contact);
+        }
+    }
+
+    phaseList.setLists(newList);
+}
+
 int main()
 {
 
@@ -101,11 +118,16 @@ int main()
     integrator.setIntegrationStep(integratorStepTime);
     integrator.setDynamicalSystem(system);
 
+    std::chrono::nanoseconds time = 0s;
+
+    int numberOfSupport = 2;
+    std::map<std::string, Contacts::PlannedContact> nextPlannedContact;
     Eigen::Vector3d comPosition, comVelocity, angularMomentum;
-    for (int i = 0; i < 3000; i++)
+    for (int i = 0; i < 20000; i++)
     {
         auto begin = BipedalLocomotion::clock().now();
         generator.setInput(generatorInput);
+        std::cerr << "---> new iteration of mann" << std::endl;
         generator.advance();
 
         if (i == 0)
@@ -119,13 +141,29 @@ int main()
         generatorInput.mergePointIndex = 1;
         mpc.setState(comPosition, comVelocity, angularMomentum);
         mpc.setReferenceTrajectory(generator.getOutput().comTrajectory, generator.getOutput().angularMomentumTrajectory / 56.0);
-        mpc.setContactPhaseList(generator.getOutput().phaseList);
-        mpc.advance();
 
+        auto phaseList = generator.getOutput().phaseList;
+
+        if(numberOfSupport == 1 && phaseList.getPresentPhase(time)->activeContacts.size() == 2)
+        {
+            numberOfSupport = 2;
+            nextPlannedContact = mpc.getOutput().nextPlannedContact;
+        }
+        else if (numberOfSupport == 2 && phaseList.getPresentPhase(time)->activeContacts.size() == 1)
+        {
+            numberOfSupport = 1;
+        }
+
+        updateContactPhaseList(nextPlannedContact, phaseList);
+
+        mpc.setContactPhaseList(phaseList);
+        mpc.advance();
         auto end = BipedalLocomotion::clock().now();
 
+
+
         auto elapsedTime = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
-        BipedalLocomotion::log()->warn("time to compute trajectory {}", std::chrono::duration<double>(elapsedTime).count());
+/*         BipedalLocomotion::log()->warn("time to compute trajectory {}", std::chrono::duration<double>(elapsedTime).count());
 
         for(const auto& [key, list]: generator.getOutput().phaseList.lists())
         {
@@ -137,7 +175,7 @@ int main()
                 std::chrono::duration<double>(contact.deactivationTime).count());
             }
         }
-
+ */
 
         if (i == 0)
         {
@@ -179,8 +217,16 @@ int main()
         myFile << comPosition.transpose() << " " << generator.getOutput().comTrajectory.col(0).transpose() << " "
                << angularMomentum.transpose() << " " << elapsedTime.count() << std::endl;
 
-        system->setControlInput({mpc.getOutput().contacts, Eigen::Vector3d::Zero()});
+        Eigen::Vector3d externalWrench = Eigen::Vector3d::Zero();
+        if (46 <= i && i <= 50)
+        {
+            std::cerr << "external wrench" << std::endl;
+            externalWrench(1) = -5;
+        }
+        system->setControlInput({mpc.getOutput().contacts, externalWrench});
         integrator.integrate(0s, integratorStepTime);
+
+        time += integratorStepTime;
     }
 
     return 0;

@@ -22,6 +22,11 @@ corner_0  = [0.08, 0.03, 0.0]
 corner_1  = [0.08, -0.03, 0.0]
 corner_2  = [-0.08, -0.03, 0.0]
 corner_3  = [-0.08, 0.03, 0.0]
+on_threshold = -0.01
+off_threshold = -0.01
+switch_on_after = 0.04
+switch_off_after = 0.04
+
 
 [RIGHT_FOOT]
 number_of_corners = 4
@@ -29,6 +34,10 @@ corner_0  = [0.08, 0.03, 0.0]
 corner_1  = [0.08, -0.03, 0.0]
 corner_2  = [-0.08, -0.03, 0.0]
 corner_3  = [-0.08, 0.03, 0.0]
+on_threshold = -0.01
+off_threshold = -0.01
+switch_on_after = 0.04
+switch_off_after = 0.04
 
 [MANN]
 projected_base_horizon = 12
